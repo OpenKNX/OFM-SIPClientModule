@@ -9,12 +9,13 @@ class SIPModule : public SIPChannelOwnerModule
    unsigned long _sipCallTimeoutMs = 0;
    unsigned long _sipCallSince = 0;
    uint8_t _currentChannel = 0;
+   bool _connected;
   protected:
     OpenKNX::Channel* createChannel(uint8_t _channelIndex /* this parameter is used in macros, do not rename */) override; 
 
   public:
     SIPModule();
-
+    void setup() override;
     void loop() override;
 
     const std::string name() override;

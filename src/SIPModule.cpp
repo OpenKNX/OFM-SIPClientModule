@@ -94,13 +94,35 @@ OpenKNX::Channel* SIPModule::createChannel(uint8_t _channelIndex /* this paramet
     return new SIPCallNumberChannel(_channelIndex);
 }
 
+void SIPModule::setup()
+{
+    SIPChannelOwnerModule::setup();
+    KoSIP_GatewayConnectionState.value(_connected, DPT_Switch);
+}
+
 void SIPModule::loop()
 {
 #if ARDUINO_ARCH_ESP32 
     auto sipClient = (SipClientT*)_sipClient;
     if (sipClient != nullptr)
     {
+        bool connected = sipClient->isConnected();
+        if (WiFi.status() != WL_CONNECTED)
+        {
+            delete sipClient;
+            _sipClient = nullptr;
+            _connected = false;
+            _sipCallSince = 0;
+        }
+        if (_connected != connected)
+        {
+            _connected = connected;
+            KoSIP_GatewayConnectionState.value(_connected, DPT_Switch);
+        }
+        if (_sipClient == nullptr)
+            return;
         sipClient->run();
+
         if (_sipCallSince > 0)
         {
             // SIP call active
@@ -113,8 +135,7 @@ void SIPModule::loop()
             }
         }
         else
-        {
-            
+        {          
             auto channel = (SIPCallNumberChannel*) getChannel(_currentChannel);
             _currentChannel++;
             if (_currentChannel >= getNumberOfChannels())

@@ -37,72 +37,6 @@
 
 #include <chrono>
 
-class StatObject {
-public:
-    long freeRam;
-    double processingTime;
-};
-
-std::vector<StatObject> statistics;
-uint8_t istat = 0;
-bool statFull = false;
-StatObject statO = {};
-
-static void rtp_task(void* pvParameters)
-{
-    LwipUdpClient* socket = (LwipUdpClient*)pvParameters;
-    for (;;) {
-        if (!socket->is_initialized()) {
-            vTaskDelay(2000 / portTICK_RATE_MS);
-            ESP_LOGI("RTP", "niezainicjowane");
-            //i2s_init();
-            //display_init();
-            continue;
-        }
-
-        std::string packet = socket->receive(5000);
-
-        if (packet.size() > 0) {
-            ESP_LOGV("RTPtask", "Received %d byte", packet.size());
-            if ((int)packet[0] == 128) {                
-                std::chrono::high_resolution_clock::time_point begin = std::chrono::high_resolution_clock::now();
-                //audioRX(packet);
-                //audioTX(socket);
-                std::chrono::high_resolution_clock::time_point end = std::chrono::high_resolution_clock::now();
-                statO.freeRam = esp_get_free_heap_size();
-                std::chrono::duration<double> time_span = std::chrono::duration_cast<std::chrono::duration<double>>(end - begin);
-                statO.processingTime = (double)time_span.count();
-                // std::cout << "duration = " << statO.processingTime << " ms, freeRAM = " << statO.freeRam << std::endl;
-
-                if (!statFull) {
-                    statistics.push_back(statO);
-                    istat++;
-                    statO = {};
-                    if (istat == 100)
-                    {
-                        statFull = true;
-                    }
-                }
-            }
-        } else {
-            ESP_LOGV("RTPtask", "No received data");
-            //i2s_pause();
-            if (statFull) 
-            {
-                vTaskDelay(2000 / portTICK_PERIOD_MS);
-                std::cout << "Statistics for 100 packets:" << std::endl;
-                std::cout << " time;freeram" << std::endl;
-                for (int k = 0; k < 100; k++) 
-                {
-                    std::cout << statistics[k].processingTime << ";" << statistics[k].freeRam << std::endl;
-                }
-                istat = 0;
-                statistics.clear();
-                statFull = false;
-            }
-        }
-    }
-}
 
 struct SipClientEvent {
     enum class Event {
@@ -142,13 +76,13 @@ public:
         , m_response("")
         , m_realm("")
         , m_nonce("")
+        , m_currentReceiveMessage("")
         , m_tag(std::rand() % 2147483647)
         , m_branch(std::rand() % 2147483647)
         , m_caller_display(m_user)
         , m_sdp_session_id(0)
-        , m_command_event_group(xEventGroupCreate())
     {
-        xTaskCreate(&rtp_task, "rtp_task", 4096, &m_rtp_socket, 4, NULL);
+      //  xTaskCreate(&rtp_task, "rtp_task", 4096, &m_rtp_socket, 4, NULL);
     }
 
     ~SipClientInt()
@@ -196,6 +130,20 @@ public:
         m_event_handler = handler;
     }
 
+    bool isConnected()
+    {
+        if (m_state == SipState::REGISTERED)
+            return true;
+        if (m_state == SipState::RINGING)
+            return true;
+        if (m_state == SipState::CALL_START)
+            return true;
+        if (m_state == SipState::CALL_IN_PROGRESS)
+            return true;
+        if (m_state == SipState::CANCELLED)
+            return true;
+        return false;
+    }
     /**
      * Initiate a call async
      *
@@ -210,16 +158,13 @@ public:
             m_uri = "sip:" + local_number + "@" + m_server_ip;
             m_to_uri = "sip:" + local_number + "@" + m_server_ip;
             m_caller_display = caller_display;
-            xEventGroupSetBits(m_command_event_group, COMMAND_DIAL_BIT);
+            m_sipCommand = SipCommand::SipCommandDial;
         }
     }
 
     void request_cancel()
     {
-        if ((m_state == SipState::RINGING) || (m_state == SipState::CALL_IN_PROGRESS)) {
-            ESP_LOGI(TAG, "Request to CANCEL call");
-            xEventGroupSetBits(m_command_event_group, COMMAND_CANCEL_BIT);
-        }
+        m_sipCommand = SipCommand::SipCommandCancel;
     }
 
     void run()
@@ -247,8 +192,58 @@ private:
         ERROR,
     };
 
+    enum class SipCommand {
+        SipCommandIdle,
+        SipCommandDial,
+        SipCommandCancel,
+    };
+
+    static const char* getStateName(SipState state)
+    {
+        switch (state)
+        {
+        case SipState::IDLE:
+            return "idle";
+        case SipState::REGISTER_UNAUTH:
+            return "register unauth";
+        case SipState::REGISTER_AUTH:
+            return "register auth";
+        case SipState::REGISTERED:
+            return "registered";
+        case SipState::INVITE_UNAUTH:
+            return "invite unauth";
+        case SipState::INVITE_UNAUTH_SENT:
+            return "invite unauth sent";
+        case SipState::INVITE_AUTH:
+            return "invite auth";
+        case SipState::RINGING:
+            return "ringing";
+        case SipState::CALL_START:
+            return "call start";
+        case SipState::CALL_IN_PROGRESS:
+            return "call in progress";
+        case SipState::CANCELLED:
+            return "cancelled";
+        case SipState::ERROR:
+            return "error";
+        default:
+            return "unknown";
+        }
+    }
+
     void tx()
     {
+        if (m_receivedStarted != 0)
+            return;
+        if (m_sipCommand == SipCommand::SipCommandCancel)
+        {
+            m_sipCommand = SipCommand::SipCommandIdle;
+            if (m_state == SipState::CALL_IN_PROGRESS)
+                send_sip_bye();
+            send_sip_cancel();
+            setState(SipState::IDLE);
+            return;
+        }
         switch (m_state) {
         case SipState::IDLE:
             //fall-through
@@ -285,19 +280,12 @@ private:
         case SipState::RINGING:
             // RTP ssrc generation
             //ssrc = std::rand() % 2147483647;
-            if (xEventGroupWaitBits(m_command_event_group, COMMAND_CANCEL_BIT, true, true, 0)) {
-                // ESP_LOGD(TAG, "Sending cancel request");
-                // send_sip_cancel();
-            }
+            
             break;
         case SipState::CALL_START:
             send_sip_ack();
             break;
         case SipState::CALL_IN_PROGRESS:
-            if (xEventGroupWaitBits(m_command_event_group, COMMAND_CANCEL_BIT, true, true, 0)) {
-                ESP_LOGD(TAG, "Sending bye request");
-                //send_sip_bye();
-            }
             break;
         case SipState::CANCELLED:
             send_sip_ack();
@@ -311,30 +299,50 @@ private:
 
     void rx()
     {
-        if (m_state == SipState::REGISTERED) {
-            if (xEventGroupWaitBits(m_command_event_group, COMMAND_DIAL_BIT, true, true, 0)) {
-                m_state = SipState::INVITE_UNAUTH;
-                log_state_transition(SipState::REGISTERED, m_state);
-            }
-            //return;
-        } else if (m_state == SipState::ERROR) {
-            vTaskDelay(2000 / portTICK_RATE_MS);
+        if (m_state == SipState::ERROR) {              
+            if (millis() - m_errorStarted < 1000)
+                return;
+            m_errorStarted = 0;
             m_sip_sequence_number++;
-            m_state = SipState::IDLE;
-            log_state_transition(SipState::ERROR, m_state);
-            return;
-        } else if (m_state == SipState::INVITE_UNAUTH) {
-            m_state = SipState::INVITE_UNAUTH_SENT;
-            log_state_transition(SipState::INVITE_UNAUTH, m_state);
-            return;
-        } else if (m_state == SipState::CALL_START) {
-            m_state = SipState::CALL_IN_PROGRESS;
-            log_state_transition(SipState::CALL_START, m_state);
+            setState(SipState::IDLE);
             return;
         }
+        if (m_receivedStarted == 0)
+        {
+            if (m_sipCommand == SipCommand::SipCommandDial)
+            {
+                m_sipCommand = SipCommand::SipCommandIdle;
+                if (m_state == SipState::REGISTERED)
+                     setState(SipState::INVITE_UNAUTH);
+                return;
+            }
+            if (m_state == SipState::INVITE_UNAUTH) {
+                setState(SipState::INVITE_UNAUTH_SENT);
+                return;
+            } else if (m_state == SipState::CALL_START) {
+                setState(SipState::CALL_IN_PROGRESS);
+                return;
+            }           
+        }
+       
+        // The timeout is a workaround to be able to end a CANCEL request during ring
+        //std::string recv_string = m_socket.receive(SOCKET_RX_TIMEOUT_MSEC);
+        auto now = millis();
+        if (now == 0)
+            now = 1;
+        if (m_receivedStarted == 0)
+        {
+            m_currentReceiveMessage == "";
+            m_receivedStarted = now;
+        }
+        std::string temp = m_socket.receive(0);
+        m_currentReceiveMessage += temp;
+        if (now - m_receivedStarted < SOCKET_RX_TIMEOUT_MSEC)
+            return;
+        m_receivedStarted = 0;
+        std::string recv_string = m_currentReceiveMessage;
+        m_currentReceiveMessage = "";
 
-        //The timeout is a workaround to be able to end a CANCEL request during ring
-        std::string recv_string = m_socket.receive(SOCKET_RX_TIMEOUT_MSEC);
 
         if (recv_string.empty()) {
             return;
@@ -350,8 +358,7 @@ private:
         ESP_LOGI(TAG, "Parsing the packet ok, reply code=%d", (int)packet.get_status());
 
         if (reply == SipPacket::Status::SERVER_ERROR_500) {
-            log_state_transition(m_state, SipState::ERROR);
-            m_state = SipState::ERROR;
+            setState(SipState::ERROR, "SERVER_ERROR_500");
             return;
         } else if ((reply == SipPacket::Status::UNAUTHORIZED_401) || (reply == SipPacket::Status::PROXY_AUTH_REQ_407)) {
             m_realm = packet.get_realm();
@@ -379,12 +386,11 @@ private:
             m_to_tag = packet.get_to_tag();
         }
 
-        SipState old_state = m_state;
         switch (m_state) {
         case SipState::IDLE:
             //fall-trough
         case SipState::REGISTER_UNAUTH:
-            m_state = SipState::REGISTER_AUTH;
+            setState(SipState::REGISTER_AUTH);
             m_sip_sequence_number++;
             break;
         case SipState::REGISTER_AUTH:
@@ -396,15 +402,16 @@ private:
                 ESP_LOGI(TAG, "REGISTER - OK :)");
                 m_uri = "sip:**613@" + m_server_ip;
                 m_to_uri = "sip:**613@" + m_server_ip;
-                m_state = SipState::REGISTERED;
+                setState(SipState::REGISTERED);
             } else {
-                m_state = SipState::ERROR;
+                setState(SipState::ERROR, "Wrong Reply");
+                return;
             }
             break;
         case SipState::REGISTERED:
             if (packet.get_method() == SipPacket::Method::INVITE) {
                 //received an invite, answered it already with ok, so new call is established, because someone called us
-                m_state = SipState::CALL_START;
+                setState(SipState::CALL_START);
                 if (m_event_handler) {
                     m_event_handler(SipClientEvent{ SipClientEvent::Event::CALL_START });
                 }
@@ -413,31 +420,37 @@ private:
         case SipState::INVITE_UNAUTH_SENT:
         case SipState::INVITE_UNAUTH:
             if ((reply == SipPacket::Status::UNAUTHORIZED_401) || (reply == SipPacket::Status::PROXY_AUTH_REQ_407)) {
-                m_state = SipState::INVITE_AUTH;
+                setState( SipState::INVITE_AUTH);
                 send_sip_ack();
                 m_sip_sequence_number++;
             } else if ((reply == SipPacket::Status::OK_200) || (reply == SipPacket::Status::SESSION_PROGRESS_183)) {
-                m_state = SipState::RINGING;
+                setState(SipState::RINGING);
                 m_nonce = "";
                 m_realm = "";
                 m_response = "";
                 ESP_LOGV(TAG, "Start RINGing...");
             } else if (reply != SipPacket::Status::TRYING_100) {
-                m_state = SipState::ERROR;
+                setState(SipState::ERROR, "TRYING_100");
+                return;
             }
             break;
         case SipState::INVITE_AUTH:
-            if ((reply == SipPacket::Status::UNAUTHORIZED_401) || (reply == SipPacket::Status::PROXY_AUTH_REQ_407)) {
-                m_state = SipState::ERROR;
+            if (reply == SipPacket::Status::UNAUTHORIZED_401) {
+                setState(SipState::ERROR, "UNAUTHORIZED_401");
+                return;
+            } else if (reply == SipPacket::Status::PROXY_AUTH_REQ_407) {
+               setState(SipState::ERROR, "PROXY_AUTH_REQ_407");
+               return;
             } else if ((reply == SipPacket::Status::OK_200) || (reply == SipPacket::Status::SESSION_PROGRESS_183) || (reply == SipPacket::Status::TRYING_100)) {
                 //trying is not yet ringing, but change state to not send invite again
-                m_state = SipState::RINGING;
+                setState(SipState::RINGING);
                 m_nonce = "";
                 m_realm = "";
                 m_response = "";
                 ESP_LOGV(TAG, "Start RINGing...");
             } else {
-                m_state = SipState::ERROR;
+                setState(SipState::ERROR, "Invalid INVITE_AUTH reply");
+                return;
             }
             break;
         case SipState::RINGING:
@@ -446,25 +459,25 @@ private:
                 //m_state = SipState::ERROR;
             } else if (reply == SipPacket::Status::OK_200) {
                 //other side picked up, send an ack
-                m_state = SipState::CALL_START;
+                setState(SipState::CALL_START);
                 if (m_event_handler) {
                     m_event_handler(SipClientEvent{ SipClientEvent::Event::CALL_START });
                 }
             } else if (reply == SipPacket::Status::REQUEST_CANCELLED_487) {
-                m_state = SipState::CANCELLED;
+                setState(SipState::CANCELLED);
                 if (m_event_handler) {
                     m_event_handler(SipClientEvent{ SipClientEvent::Event::CALL_CANCELLED });
                 }
             } else if (reply == SipPacket::Status::PROXY_AUTH_REQ_407) {
                 send_sip_ack();
                 m_sip_sequence_number++;
-                m_state = SipState::INVITE_AUTH;
+                setState(SipState::INVITE_AUTH);
                 ESP_LOGV(TAG, "Go back to send invite with auth...");
             } else if ((reply == SipPacket::Status::DECLINE_603) || (reply == SipPacket::Status::BUSY_HERE_486)) {
                 send_sip_ack();
                 m_sip_sequence_number++;
                 m_branch = std::rand() % 2147483647;
-                m_state = SipState::REGISTERED;
+                setState(SipState::REGISTERED);
                 SipClientEvent::CancelReason cancel_reason = SipClientEvent::CancelReason::CALL_DECLINED;
                 if (reply == SipPacket::Status::BUSY_HERE_486) {
                     cancel_reason = SipClientEvent::CancelReason::TARGET_BUSY;
@@ -480,7 +493,7 @@ private:
         case SipState::CALL_IN_PROGRESS:
             if (packet.get_method() == SipPacket::Method::BYE) {
                 m_sip_sequence_number++;
-                m_state = SipState::REGISTERED;
+                setState(SipState::REGISTERED);
                 if (m_event_handler) {
                     m_event_handler(SipClientEvent{ SipClientEvent::Event::CALL_END });
                 }
@@ -494,18 +507,17 @@ private:
         case SipState::CANCELLED:
             if (reply == SipPacket::Status::OK_200) {
                 m_sip_sequence_number++;
-                m_state = SipState::REGISTERED;
+                setState(SipState::REGISTERED);
             }
+            else
+                setState(SipState::ERROR, "No Cancel Ack");
             break;
         case SipState::ERROR:
             m_sip_sequence_number++;
-            m_state = SipState::IDLE;
+            setState(SipState::IDLE);
             break;
         }
 
-        if (old_state != m_state) {
-            log_state_transition(old_state, m_state);
-        }
     }
 
     void send_sip_register()
@@ -754,16 +766,32 @@ private:
         }
     }
 
-    void log_state_transition(SipState old_state, SipState new_state)
+    const std::string& logPrefix()
     {
-        Serial.printf("New state %d -> %d", (int)old_state, (int)new_state);
-        Serial.println();
-        ESP_LOGI(TAG, "New state %d -> %d", (int)old_state, (int)new_state);
-
+        return m_logPrefix;
+    }
+    
+    void setState(SipState new_state, const char* error = nullptr)
+    {
+        if (new_state == m_state)
+            return;
+        if (new_state == SipState::ERROR)
+            logErrorP("State change from '%s' to '%s' (%s)", getStateName(m_state), getStateName(new_state), error);
+        else
+            logDebugP("State change from '%s' to '%s'", getStateName(m_state), getStateName(new_state));
+        m_state = new_state;
         switch (new_state) {
+        case SipState::ERROR:
+            {
+                auto now = millis();
+                if (now == 0)
+                    now = 1;
+                m_errorStarted = now;
+            }
+            break;
         case SipState::IDLE:
             //dsp_ok_wifi();
-            vTaskDelay(1500 / portTICK_PERIOD_MS);
+            //vTaskDelay(1500 / portTICK_PERIOD_MS);
             //dsp_wait_sip();
             break;
         case SipState::REGISTERED:
@@ -786,6 +814,7 @@ private:
     SocketT m_rtp_socket;
     Md5T m_md5;
     std::string m_server_ip;
+    std::string m_logPrefix = TAG;
 
     std::string m_user;
     std::string m_pwd;
@@ -809,16 +838,16 @@ private:
 
     //misc stuff
     std::string m_caller_display;
+    std::string m_currentReceiveMessage;
+    unsigned long m_receivedStarted = 0;
+    unsigned long m_errorStarted = 0;
 
     uint32_t m_sdp_session_id;
     Buffer<1024> m_tx_sdp_buffer;
 
     std::function<void(const SipClientEvent&)> m_event_handler;
-
-    /* FreeRTOS event group to signal commands from other tasks */
-    EventGroupHandle_t m_command_event_group;
-    static constexpr uint8_t COMMAND_DIAL_BIT = BIT0;
-    static constexpr uint8_t COMMAND_CANCEL_BIT = BIT1;
+    
+    volatile SipCommand m_sipCommand = SipCommand::SipCommandIdle;
 
     static constexpr const uint16_t LOCAL_PORT = 5060;
     static constexpr const char* TRANSPORT_LOWER = "udp";
@@ -915,6 +944,11 @@ public:
     void request_ring(const std::string& local_number, const std::string& caller_display)
     {
         m_sip.request_ring(local_number, caller_display);
+    }
+
+    bool isConnected()
+    {
+        return m_sip.isConnected();
     }
 
     void request_cancel()
