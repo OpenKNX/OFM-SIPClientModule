@@ -142,7 +142,9 @@ public:
     {
         if (m_socket >= 0)
         {
+#ifdef ARDUINO_ARCH_ESP32 
             ESP_LOGW(TAG, "Socket already initialized");
+#endif
             return false;
         }
         struct addrinfo hints;
@@ -152,28 +154,36 @@ public:
 
         struct addrinfo *res;
         struct in_addr *addr;
+#ifdef ARDUINO_ARCH_ESP32 
         ESP_LOGI(TAG, "Doing DNS lookup for host=%s port=%s", m_server_ip.c_str(), m_server_port.c_str());
-
+#endif
         int err = getaddrinfo(m_server_ip.c_str(), m_server_port.c_str(), &hints, &res);
 
         if(err != 0 || res == NULL)
         {
+#ifdef ARDUINO_ARCH_ESP32 
             ESP_LOGE(TAG, "DNS lookup failed err=%d res=%p", err, res);
+#endif
             return false;
         }
 
         /* Code to print the resolved IP.
          * Note: inet_ntoa is non-reentrant, look at ipaddr_ntoa_r for "real" code */
         addr = &((struct sockaddr_in *)res->ai_addr)->sin_addr;
+#ifdef ARDUINO_ARCH_ESP32         
         ESP_LOGI(TAG, "DNS lookup succeeded. IP=%s", inet_ntoa(*addr));
-
+#endif
         m_socket = socket(res->ai_family, res->ai_socktype, 0);
         if(m_socket < 0) {
+#ifdef ARDUINO_ARCH_ESP32            
             ESP_LOGE(TAG, "... Failed to allocate socket.");
+#endif
             freeaddrinfo(res);
             return false;
         }
+#ifdef ARDUINO_ARCH_ESP32 
         ESP_LOGI(TAG, "... allocated socket %d\r\n", m_socket);
+#endif
 
         /*Destination*/
         bzero(&m_dest_addr, sizeof(m_dest_addr));
@@ -194,7 +204,9 @@ public:
 
         if (bind(m_socket, (struct sockaddr *)&local_addr, sizeof(local_addr)) < 0)
         {
+#ifdef ARDUINO_ARCH_ESP32             
             ESP_LOGE(TAG, "... Failed to bind");
+#endif
             close(m_socket);
             m_socket = INVALID_SOCKET;
             return false;
@@ -221,7 +233,9 @@ public:
 
         if (readable < 0)
         {
+#ifdef ARDUINO_ARCH_ESP32             
             ESP_LOGW(TAG, "Select error: %d, errno=%d", readable, errno);
+#endif
         }
         if (readable <= 0)
         {
@@ -231,12 +245,16 @@ public:
         ssize_t len = recv(m_socket, m_rx_buffer.data(), m_rx_buffer.size(), 0);
         if (len <= 0)
         {
+#ifdef ARDUINO_ARCH_ESP32             
             ESP_LOGD(TAG, "Received no data: %d, errno=%d", len, errno);
+#endif
             return "";
         }
         m_rx_buffer[len] = '\0';
+#ifdef ARDUINO_ARCH_ESP32        
         ESP_LOGD(TAG, "Received %d byte", len);
         ESP_LOGV(TAG, "Received following data: %s", m_rx_buffer.data());
+#endif
 
         return std::string(m_rx_buffer.data(), len);
     }
@@ -249,12 +267,16 @@ public:
 
     bool send_buffered_data()
     {
+#ifdef ARDUINO_ARCH_ESP32         
         ESP_LOGD(TAG, "Sending %d byte", m_tx_buffer.size());
         ESP_LOGV(TAG, "Sending following data: %s", m_tx_buffer.data());
+#endif
         ssize_t result = sendto(m_socket, m_tx_buffer.data(), m_tx_buffer.size(), 0, (struct sockaddr *)&m_dest_addr, sizeof(m_dest_addr));
         if (result < 0)
         {
+#ifdef ARDUINO_ARCH_ESP32             
             ESP_LOGD(TAG, "Failed to send data %d, errno=%d", result, errno);
+#endif
         }
         return result == m_tx_buffer.size();
     }
