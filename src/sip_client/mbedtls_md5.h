@@ -15,8 +15,12 @@
  */
 
 #pragma once
-
+#ifdef ARDUINO_ARCH_RP2040
+#include "md5.h"
+#else
 #include "mbedtls/md5.h"
+#endif
+
 
 class MbedtlsMd5
 {
@@ -33,7 +37,11 @@ public:
 
     void start()
     {
+#ifdef ARDUINO_ARCH_ESP32
         mbedtls_md5_starts_ret(&m_ctx);
+#else
+        mbedtls_md5_starts(&m_ctx);
+#endif
     }
 
     void update(const std::string& input)

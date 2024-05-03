@@ -15,10 +15,11 @@
  */
 
 #pragma once
-
+#ifdef ARDUINO_ARCH_ESP32
 #include "esp_log.h"
+#endif
 #include <cstring>
-#include <iostream>
+//#include <iostream>
 
 class SipPacket
 {
@@ -179,7 +180,9 @@ private:
 
         if (end_position == nullptr)
         {
+#ifdef ARDUINO_ARCH_ESP32            
             ESP_LOGW(TAG, "No line ending found in %s", m_buffer);
+#endif
             return false;
         }
 
@@ -189,7 +192,9 @@ private:
             size_t length = end_position - start_position;
             if (length == 0) //line only contains the line ending
             {
+#ifdef ARDUINO_ARCH_ESP32
                 ESP_LOGV(TAG, "Valid end of header detected");
+#endif
                 if (end_position + LINE_ENDING_LEN >= m_buffer + m_buffer_length)
                 {
                     // no remaining data in buffer, so no body
@@ -207,36 +212,52 @@ private:
             //create a proper null terminated c string
             //from here on string functions may be used!
             memset(end_position, 0, LINE_ENDING_LEN);
+#ifdef ARDUINO_ARCH_ESP32
             ESP_LOGV(TAG, "Parsing line: %s", start_position);
+#endif
 
             if (strstr(start_position, SIP_2_0_SPACE) == start_position)
             {
                 long code = strtol(start_position + strlen(SIP_2_0_SPACE), nullptr, 10);
+#ifdef ARDUINO_ARCH_ESP32                
                 ESP_LOGV(TAG, "Detect status %ld", code);
+#endif
                 m_status = convert_status(code);
             }
             else if ((strncmp(WWW_AUTHENTICATE, start_position, strlen(WWW_AUTHENTICATE)) == 0)
                     || (strncmp(PROXY_AUTHENTICATE, start_position, strlen(PROXY_AUTHENTICATE)) == 0))
             {
+#ifdef ARDUINO_ARCH_ESP32                
                 ESP_LOGV(TAG, "Detect authenticate line");
+#endif
                 //read realm and nonce from authentication line
                 if (!read_param(start_position, REALM, m_realm))
                 {
+#ifdef ARDUINO_ARCH_ESP32
                     ESP_LOGW(TAG, "Failed to read realm in authenticate line");
+#endif
                 }
                 if (!read_param(start_position, NONCE, m_nonce))
                 {
+#ifdef ARDUINO_ARCH_ESP32                    
                     ESP_LOGW(TAG, "Failed to read nonce in authenticate line");
+#endif
                 }
+#ifdef ARDUINO_ARCH_ESP32
                 ESP_LOGI(TAG, "Realm is %s and nonce is %s", m_realm.c_str(), m_nonce.c_str());
+#endif
             }
             else if (strncmp(CONTACT, start_position, strlen(CONTACT)) == 0)
             {
+#ifdef ARDUINO_ARCH_ESP32
                 ESP_LOGV(TAG, "Detect contact line");
+#endif
                 const char* last_pos = strstr(start_position, ">");
                 if (last_pos == nullptr)
                 {
+#ifdef ARDUINO_ARCH_ESP32
                     ESP_LOGW(TAG, "Failed to read content of contact line");
+#endif
                 }
                 else
                 {
@@ -245,7 +266,9 @@ private:
             }
             else if (strncmp(TO, start_position, strlen(TO)) == 0)
             {
+#ifdef ARDUINO_ARCH_ESP32
                 ESP_LOGV(TAG, "Detect to line");
+#endif
                 const char* tag_pos = strstr(start_position, ">;tag=");
                 if (tag_pos != nullptr)
                 {
@@ -278,7 +301,9 @@ private:
                 long length = strtol(start_position + strlen(CONTENT_LENGTH), nullptr, 10);
                 if (length < 0)
                 {
+#ifdef ARDUINO_ARCH_ESP32
                     ESP_LOGW(TAG, "Invalid content length %ld", length);
+#endif
                 }
                 else
                 {
@@ -313,7 +338,9 @@ private:
 
         if (end_position == nullptr)
         {
+#ifdef ARDUINO_ARCH_ESP32
             ESP_LOGW(TAG, "No line ending found in %s", m_body);
+#endif
             return false;
         }
 
@@ -330,8 +357,9 @@ private:
             //create a proper null terminated c string
             //from here on string functions may be used!
             memset(end_position, 0, LINE_ENDING_LEN);
+#ifdef ARDUINO_ARCH_ESP32
             ESP_LOGV(TAG, "Parsing line: %s", start_position);
-
+#endif
             if (strstr(start_position, SIGNAL) == start_position)
             {
                 m_dtmf_signal = *(start_position + strlen(SIGNAL));
@@ -341,7 +369,9 @@ private:
                 long duration = strtol(start_position + strlen(DURATION), nullptr, 10);
                 if (duration < 0)
                 {
+#ifdef ARDUINO_ARCH_ESP32
                     ESP_LOGW(TAG, "Invalid duration %ld", duration);
+#endif
                 }
                 else
                 {

@@ -1,5 +1,5 @@
 #pragma once
-#ifdef ARDUINO_ARCH_ESP32
+//#ifdef ARDUINO_ARCH_ESP32
 #include "OpenKNX.h"
 #include "ChannelOwnerModule.h"
 
@@ -29,4 +29,4 @@ class SIPModule : public SIPChannelOwnerModule
 
 extern SIPModule openknxSIPModule;
 
-#endif
+//#endif
