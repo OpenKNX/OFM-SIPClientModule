@@ -1,62 +1,63 @@
 <?xml version="1.0" encoding="utf-8"?>
 <?xml-model href="../../Organization/knxprod-support/knx_project_14/knx-editor.xsd" type="application/xml" schematypens="http://www.w3.org/2001/XMLSchema"?>
 <KNX xmlns:op="http://github.com/OpenKNX/OpenKNXproducer" xmlns="http://knx.org/xml/project/14" CreatedBy="KNX MT" ToolVersion="5.1.255.16695">
-  <ManufacturerData>
-    <Manufacturer>
-      <ApplicationPrograms>
-        <ApplicationProgram>
-          <Static>
-            <Parameters>
-              <!-- Kanal Name -->
-              <Parameter Id="%AID%_P-%TT%%CC%000" Name="Channel%CC%Name" ParameterType="%AID%_PT-Text40Byte" Text="Bezeichnung" Value="" />             
-              <!-- Telefonnummer -->
-              <Parameter Id="%AID%_P-%TT%%CC%001" Name="CH%C%PhoneNumber" ParameterType="%AID%_PT-PhoneNumber" Text="Telefonnummer" Value="">
-                <Memory CodeSegment="%AID%_RS-04-00000" Offset="0" BitOffset="0" />
-                <!-- 1 byte 0x0 string terminator -->
-              </Parameter>  
-              <!-- Anruf beenden nach -->
-              <Parameter Id="%AID%_P-%TT%%CC%002" Name="CH%C%CancelCall" ParameterType="%AID%_PT-CancelCall" Text="Anruf beenden nach" Value="30">
-                <Memory CodeSegment="%AID%_RS-04-00000" Offset="16" BitOffset="0" />
-              </Parameter>  
-            </Parameters>
-            <ParameterRefs>
-              <!-- Kanal Name -->
-              <ParameterRef Id="%AID%_P-%TT%%CC%000_R-%TT%%CC%00001" RefId="%AID%_P-%TT%%CC%000" />
-              <!-- Telefonnummer -->
-              <ParameterRef Id="%AID%_P-%TT%%CC%001_R-%TT%%CC%00101" RefId="%AID%_P-%TT%%CC%001" />    
-              <!-- Anrfung beenden nach -->
-              <ParameterRef Id="%AID%_P-%TT%%CC%002_R-%TT%%CC%00201" RefId="%AID%_P-%TT%%CC%002" />      
-            </ParameterRefs>
-            <ComObjectTable>  
-              <!-- Nummer anrufen -->
-              <ComObject Id="%AID%_O-%TT%%CC%000" Number="%K00%" Name="CH%C%PhoneNumber" ObjectSize="1 Bit" DatapointType="DPST-1-17" Text="" FunctionText="" ReadFlag="Disabled" WriteFlag="Enabled" CommunicationFlag="Enabled" TransmitFlag="Disabled" UpdateFlag="Disabled" ReadOnInitFlag="Disabled" />  
-            </ComObjectTable>
-            <ComObjectRefs> 
-              <!-- Nummer anrufen -->
-              <ComObjectRef Id="%AID%_O-%TT%%CC%000_R-%TT%%CC%00001" RefId="%AID%_O-%TT%%CC%000" Text="%C%: Nummer anrufen"  FunctionText="{{0:-}} Nummer anrufen" TextParameterRefId="%AID%_P-%TT%%CC%000_R-%TT%%CC%00001" />    
-            </ComObjectRefs>
-          </Static>
-          <Dynamic>
-            <ChannelIndependentBlock> 
-              <ParameterBlock Id="%AID%_PB-%C%1" Name="SIP%C%Page" Text="Anruf %C%: {{0: ...}}" TextParameterRefId="%AID%_P-%TT%%CC%000_R-%TT%%CC%00001" Icon="numeric" HelpContext="SIP-Call">
-                <Channel Id="%AID%_CH-SIP%CC%" Name="f%CC%IW" Number="SIP%CC%" Text="Anruf %CC%: {{0: ...}}" TextParameterRefId="%AID%_P-%TT%%CC%000_R-%TT%%CC%00001">
-                  <ParameterBlock Id="%AID%_PB-%TT%%CC%01" Name="SIP%C%Wrapper" Inline="true">                    
-                    <ParameterSeparator Id="%AID%_PS-nnn" Text="Anruf" UIHint="Headline" />
-                    <!-- Kanal Name -->
-                    <ParameterRefRef RefId="%AID%_P-%TT%%CC%000_R-%TT%%CC%00001" HelpContext="SIP-ChannelName" />
-                    <!-- Telefonnummer -->
-                    <ParameterRefRef RefId="%AID%_P-%TT%%CC%001_R-%TT%%CC%00101" HelpContext="SIP-PhoneNumber" />
-                    <!-- Anruf beenden nach -->
-                    <ParameterRefRef RefId="%AID%_P-%TT%%CC%002_R-%TT%%CC%00201" HelpContext="SIP-CancelCall" />
-                    <!-- Telefonnummer anrufen -->       
-                    <ComObjectRefRef RefId="%AID%_O-%TT%%CC%000_R-%TT%%CC%00001" />
-                  </ParameterBlock>
-                </Channel>
-              </ParameterBlock>
-            </ChannelIndependentBlock>
-          </Dynamic>
-        </ApplicationProgram>
-      </ApplicationPrograms>
-    </Manufacturer>
-  </ManufacturerData>
+	<ManufacturerData>
+		<Manufacturer>
+			<ApplicationPrograms>
+				<ApplicationProgram>
+					<Static>
+						<Parameters>
+							<!-- Kanal Name -->
+							<Parameter Id="%AID%_P-%TT%%CC%000" Name="Channel%CC%Name" ParameterType="%AID%_PT-Text40Byte" Text="Bezeichnung" Value="" />
+							<!-- Telefonnummer -->
+							<Parameter Id="%AID%_P-%TT%%CC%001" Name="CH%C%PhoneNumber" ParameterType="%AID%_PT-PhoneNumber" Text="Telefonnummer" Value="">
+								<Memory CodeSegment="%AID%_RS-04-00000" Offset="0" BitOffset="0" />
+								<!-- 1 byte 0x0 string terminator -->
+							</Parameter>
+							<!-- Anruf beenden nach -->
+							<Parameter Id="%AID%_P-%TT%%CC%002" Name="CH%C%CancelCall" ParameterType="%AID%_PT-CancelCall" Text="Anruf beenden nach" Value="30">
+								<Memory CodeSegment="%AID%_RS-04-00000" Offset="16" BitOffset="0" />
+							</Parameter>
+						</Parameters>
+						<ParameterRefs>
+							<!-- Kanal Name -->
+							<ParameterRef Id="%AID%_P-%TT%%CC%000_R-%TT%%CC%00001" RefId="%AID%_P-%TT%%CC%000" />
+							<!-- Telefonnummer -->
+							<ParameterRef Id="%AID%_P-%TT%%CC%001_R-%TT%%CC%00101" RefId="%AID%_P-%TT%%CC%001" />
+							<!-- Anrfung beenden nach -->
+							<ParameterRef Id="%AID%_P-%TT%%CC%002_R-%TT%%CC%00201" RefId="%AID%_P-%TT%%CC%002" />
+						</ParameterRefs>
+						<ComObjectTable>
+							<!-- Nummer anrufen -->
+							<ComObject Id="%AID%_O-%TT%%CC%000" Number="%K00%" Name="CH%C%PhoneNumber" ObjectSize="1 Bit" DatapointType="DPST-1-17" Text="" FunctionText="" ReadFlag="Disabled" WriteFlag="Enabled" CommunicationFlag="Enabled" TransmitFlag="Disabled" UpdateFlag="Disabled" ReadOnInitFlag="Disabled" />
+						</ComObjectTable>
+						<ComObjectRefs>
+							<!-- Nummer anrufen -->
+							<ComObjectRef Id="%AID%_O-%TT%%CC%000_R-%TT%%CC%00001" RefId="%AID%_O-%TT%%CC%000" Text="%C%: Nummer anrufen" FunctionText="{{0:-}} Nummer anrufen" TextParameterRefId="%AID%_P-%TT%%CC%000_R-%TT%%CC%00001" />
+						</ComObjectRefs>
+					</Static>
+					<Dynamic>
+						<ChannelIndependentBlock>
+							<!-- SIP Client Active -->
+							<ParameterBlock Id="%AID%_PB-%C%1" Name="SIP%C%Page" Text="Anruf %C%: {{0: ...}}" TextParameterRefId="%AID%_P-%TT%%CC%000_R-%TT%%CC%00001" Icon="numeric" HelpContext="SIP-Call">
+								<Channel Id="%AID%_CH-SIP%CC%" Name="f%CC%IW" Number="SIP%CC%" Text="Anruf %CC%: {{0: ...}}" TextParameterRefId="%AID%_P-%TT%%CC%000_R-%TT%%CC%00001">
+									<ParameterBlock Id="%AID%_PB-%TT%%CC%01" Name="SIP%C%Wrapper" Inline="true">
+										<ParameterSeparator Id="%AID%_PS-nnn" Text="Anruf" UIHint="Headline" />
+										<!-- Kanal Name -->
+										<ParameterRefRef RefId="%AID%_P-%TT%%CC%000_R-%TT%%CC%00001" HelpContext="SIP-ChannelName" />
+										<!-- Telefonnummer -->
+										<ParameterRefRef RefId="%AID%_P-%TT%%CC%001_R-%TT%%CC%00101" HelpContext="SIP-PhoneNumber" />
+										<!-- Anruf beenden nach -->
+										<ParameterRefRef RefId="%AID%_P-%TT%%CC%002_R-%TT%%CC%00201" HelpContext="SIP-CancelCall" />
+										<!-- Telefonnummer anrufen -->
+										<ComObjectRefRef RefId="%AID%_O-%TT%%CC%000_R-%TT%%CC%00001" />
+									</ParameterBlock>
+								</Channel>
+							</ParameterBlock>
+						</ChannelIndependentBlock>
+					</Dynamic>
+				</ApplicationProgram>
+			</ApplicationPrograms>
+		</Manufacturer>
+	</ManufacturerData>
 </KNX>

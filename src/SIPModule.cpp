@@ -1,5 +1,3 @@
-//#ifdef ARDUINO_ARCH_ESP32
-
 #include "SIPModule.h"
 #include "SIPCallNumberChannel.h"
 #include "WiFi.h"
@@ -43,6 +41,8 @@ void SIPModule::showInformations()
 
 void SIPModule::showHelp()
 {
+    if (!ParamSIP_SIPClientActive)
+        return;
     openknx.console.printHelpLine("sip<CC> call", "Call the number which is configured in channel CC. i.e. sip1 call");
 }
 
@@ -91,18 +91,23 @@ bool SIPModule::processCommand(const std::string cmd, bool diagnoseKo)
 
 OpenKNX::Channel* SIPModule::createChannel(uint8_t _channelIndex /* this parameter is used in macros, do not rename */)
 {
+    if (!ParamSIP_SIPClientActive)
+        return nullptr;
     return new SIPCallNumberChannel(_channelIndex);
 }
 
 void SIPModule::setup()
 {
+    if (!ParamSIP_SIPClientActive)
+        return;
     SIPChannelOwnerModule::setup();
     KoSIP_GatewayConnectionState.value(_connected, DPT_Switch);
 }
 
 void SIPModule::loop()
 {
-#if ARDUINO_ARCH_ESP32 
+    if (!ParamSIP_SIPClientActive)
+        return;
     auto sipClient = (SipClientT*)_sipClient;
     if (sipClient != nullptr)
     {
@@ -183,8 +188,6 @@ void SIPModule::loop()
         logDebugP("SIP Client inialized: %d", (int) initialized);
     }
     SIPChannelOwnerModule::loop();
-#endif
 }
 
 SIPModule openknxSIPModule;
-//#endif
