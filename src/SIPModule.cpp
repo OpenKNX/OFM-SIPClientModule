@@ -1,4 +1,4 @@
-#ifdef ARDUINO_ARCH_ESP32
+//#ifdef ARDUINO_ARCH_ESP32
 
 #include "SIPModule.h"
 #include "SIPCallNumberChannel.h"
@@ -187,4 +187,4 @@ void SIPModule::loop()
 }
 
 SIPModule openknxSIPModule;
-#endif
+//#endif
