@@ -15,7 +15,7 @@
 								<!-- 1 byte 0x0 string terminator -->
 							</Parameter>
 							<!-- Anruf beenden nach -->
-							<Parameter Id="%AID%_P-%TT%%CC%002" Name="CH%C%CancelCall" ParameterType="%AID%_PT-CancelCall" Text="Anruf beenden nach" Value="30">
+							<Parameter Id="%AID%_P-%TT%%CC%002" Name="CH%C%CancelCall" ParameterType="%AID%_PT-CancelCall" Text="Anruf beenden nach" Value="15">
 								<Memory CodeSegment="%AID%_RS-04-00000" Offset="16" BitOffset="0" />
 							</Parameter>
 						</Parameters>

@@ -75,11 +75,9 @@
 							<ParameterBlock Id="%AID%_PB-nnn" Name="SIPGatewySettings" Text="SIP Gateway" Icon="cog" HelpContext="SIP-GatewaySettings">
 								<!-- SIP Client Active -->
 								<ParameterRefRef RefId="%AID%_UP-%TT%00000_R-%TT%0000001" IndentLevel="1" HelpContext="SIP-SipClientActive" />
-								<ParameterSeparator Id="%AID%_PS-nnn" Text="SIP Gateway Einstellungen" UIHint="Headline" />
-								<choose ParamRefId="%AID%_UP-%TT%00000_R-%TT%0000001">
-									<!-- SIP Client Active -->
-									<when test="1">
-										<!-- SIP Client Active -->
+								<choose ParamRefId="%AID%_UP-%TT%00000_R-%TT%0000001"> <!-- SIP Client Active -->
+									<when test="1"> <!-- SIP Client Active -->
+										<ParameterSeparator Id="%AID%_PS-nnn" Text="SIP Gateway Einstellungen" UIHint="Headline" />
 										<!-- IP Router is SIP Gateway -->
 										<ParameterRefRef RefId="%AID%_UP-%TT%00001_R-%TT%0000101" IndentLevel="1" HelpContext="SIP-UseIPGatway" />
 										<choose ParamRefId="%AID%_UP-%TT%00001_R-%TT%0000101">

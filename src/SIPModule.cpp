@@ -33,10 +33,20 @@ const std::string SIPModule::version()
 
 void SIPModule::showInformations()
 {
-    // if (connected())
-    //     openknx.logger.logWithPrefixAndValues("SIP", "Connected (%s)", WiFi.localIP().toString().c_str());
-    // else
-    //     openknx.logger.logWithPrefix("SIP", "Not connected");
+    if (!ParamSIP_SIPClientActive)
+        return;
+    auto sipClient = (SipClientT*)_sipClient;
+    if (sipClient != nullptr)
+    {
+        if (sipClient->isConnected())
+            openknx.logger.logWithPrefix("SIP", "connected");
+        else
+            openknx.logger.logWithPrefix("SIP", "not connected");
+    }
+    else
+    {
+        openknx.logger.logWithPrefix("SIP", "not started");
+    }
 }
 
 void SIPModule::showHelp()
@@ -44,12 +54,22 @@ void SIPModule::showHelp()
     if (!ParamSIP_SIPClientActive)
         return;
     openknx.console.printHelpLine("sip<CC> call", "Call the number which is configured in channel CC. i.e. sip1 call");
+    openknx.console.printHelpLine("sip hangup", "Hangup the current call.");
 }
 
 
 bool SIPModule::processCommand(const std::string cmd, bool diagnoseKo)
 {
-    if (cmd.rfind("sip", 0) == 0)
+    if (!ParamSIP_SIPClientActive)
+        return false;
+    if (cmd == "sip hangup")
+    {
+        auto sipClient = (SipClientT*)_sipClient;
+        if (sipClient != nullptr)
+            sipClient->request_cancel();
+        return true;
+    }
+    else if (cmd.rfind("sip", 0) == 0)
     {
         auto channelString = cmd.substr(3);
         if (channelString.length() > 0)

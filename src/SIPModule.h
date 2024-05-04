@@ -23,7 +23,6 @@ class SIPModule : public SIPChannelOwnerModule
     void showHelp() override;
     bool connected();
     bool processCommand(const std::string cmd, bool diagnoseKo) override;
-
 };
 
 extern SIPModule openknxSIPModule;

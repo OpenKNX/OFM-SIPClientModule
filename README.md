@@ -52,6 +52,10 @@ void setup()
 }
 ```
 
+## Bekannte Probleme
+
+Das automatische beenden eines Anrufs funktioniert nur, solange die Gegenstelle den Anruf noch nicht entgegen genommen hat.
+
 ## Lizenz
 
 [GNU GPL v3](LICENSE)

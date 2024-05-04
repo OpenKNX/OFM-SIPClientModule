@@ -24,16 +24,16 @@
  *  http://www.ietf.org/rfc/rfc1321.txt
  */
 
-#include "md5.h"
+#include "md5_l.h"
 
 #include <string.h>
 
 #include <stdio.h>
-#define mbedtls_printf printf
+#define mbedtls_l_printf printf
 
 
 /* Implementation that should never be optimized out by the compiler */
-static void mbedtls_zeroize( void *v, size_t n ) {
+static void mbedtls_l_zeroize( void *v, size_t n ) {
     volatile unsigned char *p = (volatile unsigned char *) v; while( n-- ) *p++ = 0;
 }
 
@@ -60,21 +60,21 @@ static void mbedtls_zeroize( void *v, size_t n ) {
 }
 #endif
 
-void mbedtls_md5_init( mbedtls_md5_context *ctx )
+void mbedtls_l_md5_init( mbedtls_l_md5_context *ctx )
 {
-    memset( ctx, 0, sizeof( mbedtls_md5_context ) );
+    memset( ctx, 0, sizeof( mbedtls_l_md5_context ) );
 }
 
-void mbedtls_md5_free( mbedtls_md5_context *ctx )
+void mbedtls_l_md5_free( mbedtls_l_md5_context *ctx )
 {
     if( ctx == NULL )
         return;
 
-    mbedtls_zeroize( ctx, sizeof( mbedtls_md5_context ) );
+    mbedtls_l_zeroize( ctx, sizeof( mbedtls_l_md5_context ) );
 }
 
-void mbedtls_md5_clone( mbedtls_md5_context *dst,
-                        const mbedtls_md5_context *src )
+void mbedtls_l_md5_clone( mbedtls_l_md5_context *dst,
+                        const mbedtls_l_md5_context *src )
 {
     *dst = *src;
 }
@@ -82,7 +82,7 @@ void mbedtls_md5_clone( mbedtls_md5_context *dst,
 /*
  * MD5 context setup
  */
-void mbedtls_md5_starts( mbedtls_md5_context *ctx )
+void mbedtls_l_md5_starts( mbedtls_l_md5_context *ctx )
 {
     ctx->total[0] = 0;
     ctx->total[1] = 0;
@@ -94,7 +94,7 @@ void mbedtls_md5_starts( mbedtls_md5_context *ctx )
 }
 
 
-void mbedtls_md5_process( mbedtls_md5_context *ctx, const unsigned char data[64] )
+void mbedtls_l_md5_process( mbedtls_l_md5_context *ctx, const unsigned char data[64] )
 {
     uint32_t X[16], A, B, C, D;
 
@@ -221,7 +221,7 @@ void mbedtls_md5_process( mbedtls_md5_context *ctx, const unsigned char data[64]
 /*
  * MD5 process buffer
  */
-void mbedtls_md5_update( mbedtls_md5_context *ctx, const unsigned char *input, size_t ilen )
+void mbedtls_l_md5_update( mbedtls_l_md5_context *ctx, const unsigned char *input, size_t ilen )
 {
     size_t fill;
     uint32_t left;
@@ -241,7 +241,7 @@ void mbedtls_md5_update( mbedtls_md5_context *ctx, const unsigned char *input, s
     if( left && ilen >= fill )
     {
         memcpy( (void *) (ctx->buffer + left), input, fill );
-        mbedtls_md5_process( ctx, ctx->buffer );
+        mbedtls_l_md5_process( ctx, ctx->buffer );
         input += fill;
         ilen  -= fill;
         left = 0;
@@ -249,7 +249,7 @@ void mbedtls_md5_update( mbedtls_md5_context *ctx, const unsigned char *input, s
 
     while( ilen >= 64 )
     {
-        mbedtls_md5_process( ctx, input );
+        mbedtls_l_md5_process( ctx, input );
         input += 64;
         ilen  -= 64;
     }
@@ -271,7 +271,7 @@ static const unsigned char md5_padding[64] =
 /*
  * MD5 final digest
  */
-void mbedtls_md5_finish( mbedtls_md5_context *ctx, unsigned char output[16] )
+void mbedtls_l_md5_finish( mbedtls_l_md5_context *ctx, unsigned char output[16] )
 {
     uint32_t last, padn;
     uint32_t high, low;
@@ -287,8 +287,8 @@ void mbedtls_md5_finish( mbedtls_md5_context *ctx, unsigned char output[16] )
     last = ctx->total[0] & 0x3F;
     padn = ( last < 56 ) ? ( 56 - last ) : ( 120 - last );
 
-    mbedtls_md5_update( ctx, md5_padding, padn );
-    mbedtls_md5_update( ctx, msglen, 8 );
+    mbedtls_l_md5_update( ctx, md5_padding, padn );
+    mbedtls_l_md5_update( ctx, msglen, 8 );
 
     PUT_UINT32_LE( ctx->state[0], output,  0 );
     PUT_UINT32_LE( ctx->state[1], output,  4 );
@@ -301,13 +301,13 @@ void mbedtls_md5_finish( mbedtls_md5_context *ctx, unsigned char output[16] )
 /*
  * output = MD5( input buffer )
  */
-void mbedtls_md5( const unsigned char *input, size_t ilen, unsigned char output[16] )
+void mbedtls_l_md5( const unsigned char *input, size_t ilen, unsigned char output[16] )
 {
-    mbedtls_md5_context ctx;
+    mbedtls_l_md5_context ctx;
 
-    mbedtls_md5_init( &ctx );
-    mbedtls_md5_starts( &ctx );
-    mbedtls_md5_update( &ctx, input, ilen );
-    mbedtls_md5_finish( &ctx, output );
-    mbedtls_md5_free( &ctx );
+    mbedtls_l_md5_init( &ctx );
+    mbedtls_l_md5_starts( &ctx );
+    mbedtls_l_md5_update( &ctx, input, ilen );
+    mbedtls_l_md5_finish( &ctx, output );
+    mbedtls_l_md5_free( &ctx );
 }
