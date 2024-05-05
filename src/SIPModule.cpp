@@ -3,11 +3,11 @@
 #include "WiFi.h"
 #include "lwip/ip_addr.h"
 
-#include "sip_client/lwip_udp_client.h"
+#include "sip_client/wifi_udp_client.h"
 #include "sip_client/mbedtls_md5.h"
 #include "sip_client/sip_client.h"
 
-using SipClientT = SipClient<LwipUdpClient, MbedtlsMd5>;
+using SipClientT = SipClient<WifiUdpClient, MbedtlsMd5>;
 
 
 SIPModule::SIPModule()
