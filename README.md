@@ -4,6 +4,8 @@
 Dabei wird das Telefon lediglich zum leuten gebracht, es wird keine Audio Verbindung hergestellt.
 Somit können z.B. SIM-Karten Gargentoröffner betätigt werden die einen Anruf benötigen um das Tor zu öffnen.
 
+Für den Aufbau einer SIP Verbindung wird ein SIP Gateway benötigt. Z.B. eine FRITZ!Box
+
 ## Abhängigkeiten
 
 Das Modul setzt [OFM-Network](https://github.com/OpenKNX/OFM-Network) oder [OFM-WLAN](https://github.com/mgeramb/OFM-WLANModule) voraus.
@@ -23,6 +25,8 @@ Das Modul setzt [OFM-Network](https://github.com/OpenKNX/OFM-Network) oder [OFM-
 Getestete Hardware:
 - [OpenKNX Reg1-ETH](https://github.com/OpenKNX/OpenKNX/wiki/REG1-Eth)
 - Adafruit ESP32 Feather V2
+
+- SIP Gateway: FRITZ!Box 7530 AX
 
 ## Einbindung in die Anwendung
 
