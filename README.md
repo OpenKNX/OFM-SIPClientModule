@@ -15,13 +15,13 @@ Das Modul setzt [OFM-Network](https://github.com/OpenKNX/OFM-Network) oder [OFM-
 
 ## Hardware Unterstützung
 
-|Prozessor | Status     | Anmerkung                  |
-|----------|------------|----------------------------|
-|ESP32     | Beta       |                            |
-
-RP2040 wird von diesem Modul nicht unterstüzt.
+|Prozessor | Status | Anmerkung                  |
+|----------|--------|----------------------------|
+|RP2040    | Beta   | Derzeit kein HTTPS Support |
+|ESP32     | Beta   |                            |
 
 Getestete Hardware:
+- [OpenKNX Reg1-ETH](https://github.com/OpenKNX/OpenKNX/wiki/REG1-Eth)
 - Adafruit ESP32 Feather V2
 
 ## Einbindung in die Anwendung
