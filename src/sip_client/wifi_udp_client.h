@@ -15,15 +15,12 @@
  */
 
 #pragma once
-
+#include "OpenKNX.h"
 #include <array>
 #include <string>
 #include <cstring>
 
 #include "WiFiUdp.h"
-#ifdef ARDUINO_ARCH_ESP32 
-#include "esp_log.h"
-#endif
 
 static constexpr const int RX_BUFFER_SIZE = 2048;
 static constexpr const int TX_BUFFER_SIZE = 2048;
@@ -98,6 +95,8 @@ public:
     , m_server(server)
     , m_local_port(local_port)
     , m_wifiUdp()
+    , m_initialized(false)
+    , m_logPrefix("SIP UDP")
     {
         m_useIp = m_server_ip.fromString(m_server.c_str());
     }
@@ -105,6 +104,12 @@ public:
     ~WifiUdpClient()
     {
     }
+
+    const std::string logPrefix()
+    {
+        return m_logPrefix;
+    }
+
 
     void set_server_ip(const std::string& server)
     {
@@ -136,11 +141,9 @@ public:
 
     bool init()
     {
-        if (m_initialized >= 0)
+        if (m_initialized)
         {
-#ifdef ARDUINO_ARCH_ESP32 
-            ESP_LOGW(TAG, "Socket already initialized");
-#endif
+            logErrorP("Socket already initialized");
             return false;
         }
     
@@ -161,10 +164,9 @@ public:
         auto size = m_wifiUdp.parsePacket();
         if (size)
         {
+
             auto result = m_wifiUdp.readString();
-#ifdef ARDUINO_ARCH_ESP32        
-            ESP_LOGV(TAG, "Received following data: %s",result);
-#endif
+            logTraceP("Received %d bytes",size);
             return std::string(result.c_str());
         }
         return std::string();
@@ -177,25 +179,21 @@ public:
     }
 
     bool send_buffered_data()
-    {
-#ifdef ARDUINO_ARCH_ESP32         
-        ESP_LOGD(TAG, "Sending %d byte", m_tx_buffer.size());
-        ESP_LOGD(TAG, "Sending following data: %s", m_tx_buffer.data());
-#endif
+    { 
+        logDebugP("Sending %d bytes", m_tx_buffer.size());
+        // logDebugP("Sending following data: %s", m_tx_buffer.data());
         if (m_useIp)
             m_wifiUdp.beginPacket(m_server_ip, m_server_port);
         else
             m_wifiUdp.beginPacket(m_server.c_str(), m_server_port);
 
         auto result = m_wifiUdp.write((const uint8_t*) m_tx_buffer.data(), m_tx_buffer.size());
-        m_wifiUdp.endPacket();
-        if (result < 0)
-        {
-#ifdef ARDUINO_ARCH_ESP32             
-            ESP_LOGD(TAG, "Failed to send data %d, errno=%d", result, errno);
-#endif
+        bool endPacketResult = m_wifiUdp.endPacket();
+        if (result != m_tx_buffer.size() || endPacketResult == 0)
+        {         
+            logErrorP("Failed to send data %d, errno=%d", result, errno);
         }
-        return result == m_tx_buffer.size();
+        return result == m_tx_buffer.size() && endPacketResult != 0;
     }
 private:
     uint16_t m_server_port;
@@ -204,6 +202,7 @@ private:
     std::string m_server;
     const uint16_t m_local_port;
     bool m_initialized;
+    std::string m_logPrefix;
 
     TxBufferT m_tx_buffer;
     std::array<char, RX_BUFFER_SIZE> m_rx_buffer;

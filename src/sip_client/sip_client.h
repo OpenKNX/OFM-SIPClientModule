@@ -81,6 +81,7 @@ public:
         , m_branch(std::rand() % 2147483647)
         , m_caller_display(m_user)
         , m_sdp_session_id(0)
+        , m_logPrefix("SIP Client")
     {
       //  xTaskCreate(&rtp_task, "rtp_task", 4096, &m_rtp_socket, 4, NULL);
     }
@@ -153,9 +154,7 @@ public:
     void request_ring(const std::string& local_number, const std::string& caller_display)
     {
         if (m_state == SipState::REGISTERED) {
-#ifdef ARDUINO_ARCH_ESP32
-            ESP_LOGI(TAG, "Request to call %s...", local_number.c_str());
-#endif
+            logInfoP("Request to call %s...", local_number.c_str());
             m_call_id = std::rand() % 2147483647;
             m_uri = "sip:" + local_number + "@" + m_server_ip;
             m_to_uri = "sip:" + local_number + "@" + m_server_ip;
@@ -353,16 +352,12 @@ private:
 
         SipPacket packet(recv_string.c_str(), recv_string.size());
         if (!packet.parse()) {
-#ifdef ARDUINO_ARCH_ESP32
-            ESP_LOGI(TAG, "Parsing the packet failed");
-#endif
+            logInfoP("Parsing the packet failed");
             return;
         }
 
         SipPacket::Status reply = packet.get_status();
-#ifdef ARDUINO_ARCH_ESP32
-        ESP_LOGI(TAG, "Parsing the packet ok, reply code=%d", (int)packet.get_status());
-#endif
+        logInfoP("Parsing the packet ok, reply code=%d", (int)packet.get_status());
 
         if (reply == SipPacket::Status::SERVER_ERROR_500) {
             setState(SipState::ERROR, "SERVER_ERROR_500");
@@ -406,9 +401,8 @@ private:
                 m_nonce = "";
                 m_realm = "";
                 m_response = "";
-#ifdef ARDUINO_ARCH_ESP32
-                ESP_LOGI(TAG, "REGISTER - OK :)");
-#endif
+
+                logInfoP("REGISTER - OK :)");
                 m_uri = "sip:**613@" + m_server_ip;
                 m_to_uri = "sip:**613@" + m_server_ip;
                 setState(SipState::REGISTERED);
@@ -437,9 +431,7 @@ private:
                 m_nonce = "";
                 m_realm = "";
                 m_response = "";
-#ifdef ARDUINO_ARCH_ESP32
-                ESP_LOGV(TAG, "Start RINGing...");
-#endif
+                logTraceP("Start RINGing...");
             } else if (reply != SipPacket::Status::TRYING_100) {
                 setState(SipState::ERROR, "TRYING_100");
                 return;
@@ -458,9 +450,9 @@ private:
                 m_nonce = "";
                 m_realm = "";
                 m_response = "";
-#ifdef ARDUINO_ARCH_ESP32
-                ESP_LOGV(TAG, "Start RINGing...");
-#endif
+
+                logTraceP("Start RINGing...");
+
             } else {
                 setState(SipState::ERROR, "Invalid INVITE_AUTH reply");
                 return;
@@ -485,9 +477,7 @@ private:
                 send_sip_ack();
                 m_sip_sequence_number++;
                 setState(SipState::INVITE_AUTH);
-#ifdef ARDUINO_ARCH_ESP32
-                ESP_LOGV(TAG, "Go back to send invite with auth...");
-#endif
+                logTraceP("Go back to send invite with auth...");
             } else if ((reply == SipPacket::Status::DECLINE_603) || (reply == SipPacket::Status::BUSY_HERE_486)) {
                 send_sip_ack();
                 m_sip_sequence_number++;
@@ -747,10 +737,9 @@ private:
         m_md5.update(data);
         m_md5.finish(hash);
         to_hex(ha1_text, hash, 16);
-#ifdef ARDUINO_ARCH_ESP32
-        ESP_LOGV(TAG, "Calculating md5 for : %s", data.c_str());
-        ESP_LOGV(TAG, "Hex ha1 is %s", ha1_text.c_str());
-#endif
+
+        logTraceP("Calculating md5 for : %s", data.c_str());
+        logTraceP("Hex ha1 is %s", ha1_text.c_str());
 
         data = method + ":" + uri;
 
@@ -758,20 +747,19 @@ private:
         m_md5.update(data);
         m_md5.finish(hash);
         to_hex(ha2_text, hash, 16);
-#ifdef ARDUINO_ARCH_ESP32
-        ESP_LOGV(TAG, "Calculating md5 for : %s", data.c_str());
-        ESP_LOGV(TAG, "Hex ha2 is %s", ha2_text.c_str());
-#endif
+
+        logTraceP("Calculating md5 for : %s", data.c_str());
+        logTraceP("Hex ha2 is %s", ha2_text.c_str());
+
         data = ha1_text + ":" + m_nonce + ":" + ha2_text;
 
         m_md5.start();
         m_md5.update(data);
         m_md5.finish(hash);
         to_hex(m_response, hash, 16);
-#ifdef ARDUINO_ARCH_ESP32
-        ESP_LOGV(TAG, "Calculating md5 for : %s", data.c_str());
-        ESP_LOGV(TAG, "Hex response is %s", m_response.c_str());
-#endif
+
+        logTraceP("Calculating md5 for : %s", data.c_str());
+        logTraceP("Hex response is %s", m_response.c_str());
     }
 
     void to_hex(std::string& dest, const unsigned char* data, int len)
@@ -828,13 +816,13 @@ private:
         }
     }
 
+    std::string m_logPrefix;
     SipState m_state = SipState::IDLE;
 
     SocketT m_socket;
     SocketT m_rtp_socket;
     Md5T m_md5;
     std::string m_server_ip;
-    std::string m_logPrefix = TAG;
 
     std::string m_user;
     std::string m_pwd;
@@ -876,7 +864,6 @@ private:
     static constexpr uint32_t SOCKET_RX_TIMEOUT_MSEC = 200;
     static constexpr uint16_t LOCAL_RTP_PORT = 7078;
     std::string rtp_port = "1234";
-    static constexpr const char* TAG = "SipClient";
 };
 
 #ifdef USE_SML
@@ -904,13 +891,8 @@ struct sip_states {
 
         return make_transition_table(
             *idle + event<ev_start> = "s1"_s, "s1"_s + sml::on_entry<_> / [] { 
-#ifdef ARDUINO_ARCH_ESP32
-                ESP_LOGV("SIP SM", "s1 on entry"); 
-#endif
+  
                 }, "s1"_s + sml::on_exit<_> / [] { 
-#ifdef ARDUINO_ARCH_ESP32                    
-                    ESP_LOGV("SIP SM", "s1 on exit"); 
-#endif                    
                     }, "s1"_s + event<ev_2> / action = state<class s2>, state<class s2> + event<ev_3> = X);
     }
 };

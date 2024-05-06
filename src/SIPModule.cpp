@@ -1,7 +1,11 @@
 #include "SIPModule.h"
 #include "SIPCallNumberChannel.h"
-#include "WiFi.h"
 #include "lwip/ip_addr.h"
+#ifdef WLAN_WifiSSID
+#include "WiFi.h"
+#else
+#include "NetworkModule.h"
+#endif
 
 #include "sip_client/wifi_udp_client.h"
 #include "sip_client/mbedtls_md5.h"
@@ -132,7 +136,11 @@ void SIPModule::loop()
     if (sipClient != nullptr)
     {
         bool connected = sipClient->isConnected();
-        if (WiFi.status() != WL_CONNECTED)
+#ifdef WLAN_WifiSSID
+        if (!WiFi.isConnected())
+#else
+        if (!openknxNetwork.established())
+#endif            
         {
             delete sipClient;
             _sipClient = nullptr;
@@ -177,15 +185,28 @@ void SIPModule::loop()
             }
         }
     }
-    else if (WiFi.status() == WL_CONNECTED)
+#ifdef WLAN_WifiSSID
+    else if (WiFi.isConnected())
+#else
+    else if (openknxNetwork.established())
+#endif    
     {
+
+#ifdef WLAN_WifiSSID
+        auto gatewayIP = WiFi.gatewayIP();
+        auto localIP = WiFi.localIP();
+#else
+        auto gatewayIP = openknxNetwork.gatewayIP();
+        auto localIP = openknxNetwork.localIP();
+#endif  
+
         auto user = std::string((const char*)ParamSIP_SIPUser);
         auto password = std::string((const char*)ParamSIP_SIPPassword);
 
         std::string serverIP;
         if (ParamSIP_UseIPGateway)
         {
-            serverIP = std::string(WiFi.gatewayIP().toString().c_str());
+            serverIP = std::string(gatewayIP.toString().c_str());
         }
         else
         {
@@ -196,13 +217,13 @@ void SIPModule::loop()
         uint16_t serverPort = ParamSIP_SIPGatewayPort;
         char buffer[10] = {0};
         std::string serverPortStr = itoa(serverPort, buffer, 10);
-        auto localIP = std::string(WiFi.localIP().toString().c_str());
+        auto localIPStr = std::string(localIP.toString().c_str());
  
         logDebugP("User: %s", user.c_str());
         logDebugP("Server IP: %s", serverIP.c_str());
         logDebugP("Port: %s", serverPortStr.c_str());
-        logDebugP("Local IP: %s", localIP.c_str());
-        auto sipClient = new SipClientT(user, password, serverIP, serverPortStr, localIP);
+        logDebugP("Local IP: %s", localIP.toString().c_str());
+        auto sipClient = new SipClientT(user, password, serverIP, serverPortStr, localIPStr);
         _sipClient = sipClient;
         bool initialized = sipClient->init();
         logDebugP("SIP Client inialized: %d", (int) initialized);

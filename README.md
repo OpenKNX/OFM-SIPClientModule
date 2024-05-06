@@ -4,6 +4,10 @@
 Dabei wird das Telefon lediglich zum leuten gebracht, es wird keine Audio Verbindung hergestellt.
 Somit können z.B. SIM-Karten Gargentoröffner betätigt werden die einen Anruf benötigen um das Tor zu öffnen.
 
+## Abhängigkeiten
+
+Das Modul setzt [OFM-Network](https://github.com/OpenKNX/OFM-Network) oder [OFM-WLAN](https://github.com/mgeramb/OFM-WLANModule) voraus.
+
 ## Features
 
 - Je Kanal kann eine Rufnummer für den Anruf hinterlegt werden
