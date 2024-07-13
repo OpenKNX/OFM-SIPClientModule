@@ -19,7 +19,7 @@ Das Modul setzt [OFM-Network](https://github.com/OpenKNX/OFM-Network) oder [OFM-
 
 |Prozessor | Status | Anmerkung                  |
 |----------|--------|----------------------------|
-|RP2040    | Beta   | Derzeit kein HTTPS Support |
+|RP2040    | Beta   |                            |
 |ESP32     | Beta   |                            |
 
 Getestete Hardware:
@@ -39,7 +39,7 @@ In das Anwendungs XML muss das OFM-SIPClientModule aufgenommen werden:
     NumChannels="5"
     KoSingleOffset="985"
     KoOffset="980">
-    <op:verify File="../lib/OFM-SIPClientModule/library.json" ModuleVersion="0" /> 
+    <op:verify File="../lib/OFM-SIPClientModule/library.json" ModuleVersion="0.1" /> 
   </op:define>
 ```
 

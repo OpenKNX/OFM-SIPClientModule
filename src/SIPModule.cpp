@@ -37,8 +37,11 @@ const std::string SIPModule::version()
 
 void SIPModule::showInformations()
 {
-    if (!ParamSIP_SIPClientActive)
+    if (ParamSIP_SIPNumChannels == 0)
+    {
+        openknx.logger.logWithPrefix("SIP", "no channels defined");
         return;
+    }
     auto sipClient = (SipClientT*)_sipClient;
     if (sipClient != nullptr)
     {
@@ -54,8 +57,8 @@ void SIPModule::showInformations()
 }
 
 void SIPModule::showHelp()
-{
-    if (!ParamSIP_SIPClientActive)
+{   
+    if (ParamSIP_SIPNumChannels == 0)
         return;
     openknx.console.printHelpLine("sip<CC> call", "Call the number which is configured in channel CC. i.e. sip1 call");
     openknx.console.printHelpLine("sip hangup", "Hangup the current call.");
@@ -64,7 +67,7 @@ void SIPModule::showHelp()
 
 bool SIPModule::processCommand(const std::string cmd, bool diagnoseKo)
 {
-    if (!ParamSIP_SIPClientActive)
+    if (ParamSIP_SIPNumChannels == 0)
         return false;
     if (cmd == "sip hangup")
     {
@@ -115,14 +118,14 @@ bool SIPModule::processCommand(const std::string cmd, bool diagnoseKo)
 
 OpenKNX::Channel* SIPModule::createChannel(uint8_t _channelIndex /* this parameter is used in macros, do not rename */)
 {
-    if (!ParamSIP_SIPClientActive)
+    if (_channelIndex >= ParamSIP_SIPNumChannels)
         return nullptr;
     return new SIPCallNumberChannel(_channelIndex);
 }
 
 void SIPModule::setup()
 {
-    if (!ParamSIP_SIPClientActive)
+    if (ParamSIP_SIPNumChannels == 0)
         return;
     SIPChannelOwnerModule::setup();
     KoSIP_GatewayConnectionState.value(_connected, DPT_Switch);
@@ -130,7 +133,7 @@ void SIPModule::setup()
 
 void SIPModule::loop()
 {
-    if (!ParamSIP_SIPClientActive)
+    if (ParamSIP_SIPNumChannels == 0)
         return;
     auto sipClient = (SipClientT*)_sipClient;
     if (sipClient != nullptr)
