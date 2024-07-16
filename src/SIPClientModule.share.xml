@@ -43,7 +43,7 @@
 								<!-- 7 Bits free -->
 								<Parameter Id="%AID%_UP-%TT%00002" Offset="2" BitOffset="0" Name="SIPGatewayIP" ParameterType="%AID%_PT-SIPGatewayIP" Text="SIP Gateway IP" Value="192.168.0.1" />
 								<Parameter Id="%AID%_UP-%TT%00003" Offset="6" BitOffset="0" Name="SIPGatewayPort" ParameterType="%AID%_PT-SIPGatewayPort" Text="SIP Gateway Port" Value="5060" />
-								<Parameter Id="%AID%_UP-%TT%00004" Offset="7" BitOffset="0" Name="SIPUser" ParameterType="%AID%_PT-SIPUser" Text="Benutzername" Value="" />
+								<Parameter Id="%AID%_UP-%TT%00004" Offset="8" BitOffset="0" Name="SIPUser" ParameterType="%AID%_PT-SIPUser" Text="Benutzername" Value="" />
 								<!-- 1 Byte 0x0 string terminator -->
 								<Parameter Id="%AID%_UP-%TT%00005" Offset="39" BitOffset="0" Name="SIPPassword" ParameterType="%AID%_PT-SIPPassword" Text="Passwort" Value="" />
 							</Union>

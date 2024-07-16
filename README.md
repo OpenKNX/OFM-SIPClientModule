@@ -39,7 +39,7 @@ In das Anwendungs XML muss das OFM-SIPClientModule aufgenommen werden:
     NumChannels="5"
     KoSingleOffset="985"
     KoOffset="980">
-    <op:verify File="../lib/OFM-SIPClientModule/library.json" ModuleVersion="0.1" /> 
+    <op:verify File="../lib/OFM-SIPClientModule/library.json" ModuleVersion="0.2" /> 
   </op:define>
 ```
 

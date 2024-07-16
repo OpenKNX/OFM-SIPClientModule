@@ -234,6 +234,12 @@ private:
 
     void tx()
     {
+        if (m_lastSent != 0)
+        {
+            if (millis() - m_lastSent < 1000)
+                return;
+            m_lastSent = 0;
+        }
         if (m_receivedStarted != 0)
             return;
         if (m_sipCommand == SipCommand::SipCommandCancel)
@@ -788,6 +794,7 @@ private:
         else
             logDebugP("State change from '%s' to '%s'", getStateName(m_state), getStateName(new_state));
         m_state = new_state;
+        m_lastSent = 0;
         switch (new_state) {
         case SipState::ERROR:
             {
@@ -847,6 +854,7 @@ private:
     //misc stuff
     std::string m_caller_display;
     std::string m_currentReceiveMessage;
+    unsigned long m_lastSent = 0;
     unsigned long m_receivedStarted = 0;
     unsigned long m_errorStarted = 0;
 
