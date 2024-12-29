@@ -37,6 +37,11 @@ const std::string SIPModule::version()
 
 void SIPModule::showInformations()
 {
+    #ifdef MODULE_SIPClientModule_Version
+    openknx.logger.logWithPrefixAndValues(logPrefix(), "SIP Client %s", MODULE_SIPClientModule_Version);
+#else
+    openknx.logger.logWithPrefix(logPrefix(), "SIP Client");
+#endif  
     if (ParamSIP_SIPNumChannels == 0)
     {
         openknx.logger.logWithPrefix("SIP", "no channels defined");
