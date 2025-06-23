@@ -37,28 +37,7 @@ const std::string SIPModule::version()
 
 void SIPModule::showInformations()
 {
-    #ifdef MODULE_SIPClientModule_Version
-    openknx.logger.logWithPrefixAndValues(logPrefix(), "SIP Client %s", MODULE_SIPClientModule_Version);
-#else
-    openknx.logger.logWithPrefix(logPrefix(), "SIP Client");
-#endif  
-    if (ParamSIP_SIPNumChannels == 0)
-    {
-        openknx.logger.logWithPrefix("SIP", "no channels defined");
-        return;
-    }
-    auto sipClient = (SipClientT*)_sipClient;
-    if (sipClient != nullptr)
-    {
-        if (sipClient->isConnected())
-            openknx.logger.logWithPrefix("SIP", "connected");
-        else
-            openknx.logger.logWithPrefix("SIP", "not connected");
-    }
-    else
-    {
-        openknx.logger.logWithPrefix("SIP", "not started");
-    }
+   
 }
 
 void SIPModule::showHelp()
@@ -114,6 +93,26 @@ bool SIPModule::processCommand(const std::string cmd, bool diagnoseKo)
             if (channelCmd.length() != 0)
             {
                 return sipCallNumberChannel->processCommand(channelCmd, diagnoseKo);
+            }
+        }
+        else
+        {
+            if (ParamSIP_SIPNumChannels == 0)
+            {
+                openknx.logger.logWithPrefix("SIP", "no channels defined");
+                return;
+            }
+            auto sipClient = (SipClientT*)_sipClient;
+            if (sipClient != nullptr)
+            {
+                if (sipClient->isConnected())
+                    openknx.logger.logWithPrefix("SIP", "connected");
+                else
+                    openknx.logger.logWithPrefix("SIP", "not connected");
+            }
+            else
+            {
+                openknx.logger.logWithPrefix("SIP", "not started");
             }
         }
     }
