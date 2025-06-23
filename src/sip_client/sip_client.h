@@ -340,7 +340,7 @@ private:
             now = 1;
         if (m_receivedStarted == 0)
         {
-            m_currentReceiveMessage == "";
+            m_currentReceiveMessage = "";
             m_receivedStarted = now;
         }
         std::string temp = m_socket.receive(0);

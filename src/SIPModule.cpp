@@ -235,6 +235,7 @@ void SIPModule::loop()
         _sipClient = sipClient;
         bool initialized = sipClient->init();
         logDebugP("SIP Client inialized: %d", (int) initialized);
+        (void)initialized;
     }
     SIPChannelOwnerModule::loop();
 }
