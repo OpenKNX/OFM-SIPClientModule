@@ -100,7 +100,7 @@ bool SIPModule::processCommand(const std::string cmd, bool diagnoseKo)
             if (ParamSIP_SIPNumChannels == 0)
             {
                 openknx.logger.logWithPrefix("SIP", "no channels defined");
-                return;
+                return true;
             }
             auto sipClient = (SipClientT*)_sipClient;
             if (sipClient != nullptr)
