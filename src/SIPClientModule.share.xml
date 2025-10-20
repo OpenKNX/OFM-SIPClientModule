@@ -72,7 +72,7 @@
 						</ComObjectRefs>
 					</Static>
 					<Dynamic>
-						<Channel Name="MainChannel%TT%" Text="SIP Client" Number="%TT%" Id="%AID%_CH-%TT%" Icon="phone-forward-outline">
+						<Channel Name="MainChannel%TT%" Text="SIP Client" Number="%PREFIX%" Id="%AID%_CH-%TT%" Icon="phone-forward-outline">
 							<ParameterBlock Id="%AID%_PB-nnn" Name="SIPGatewySettings" Text="Basiseinstellungen" Icon="cog" HelpContext="SIP-GatewaySettings">
 
 								<ParameterSeparator Id="%AID%_PS-nnn" Text="SIP Client" UIHint="Headline" />

@@ -43,19 +43,17 @@
 							<choose ParamRefId="%AID%_UP-%TT%00000_R-%TT%0000001">
 								<when test="&gt;=%C%">
 									<ParameterBlock Id="%AID%_PB-%C%1" Name="SIP%C%Page" Text="Anruf %C%: {{0: ...}}" TextParameterRefId="%AID%_P-%TT%%CC%000_R-%TT%%CC%00001" Icon="phone-dial-outline" HelpContext="SIP-Call">
-										<Channel Id="%AID%_CH-SIP%CC%" Name="f%CC%IW" Number="SIP%CC%" Text="Anruf %CC%: {{0: ...}}" TextParameterRefId="%AID%_P-%TT%%CC%000_R-%TT%%CC%00001">
-											<ParameterBlock Id="%AID%_PB-%TT%%CC%01" Name="SIP%C%Wrapper" Inline="true">
-												<ParameterSeparator Id="%AID%_PS-nnn" Text="Anruf" UIHint="Headline" />
-												<!-- Kanal Name -->
-												<ParameterRefRef RefId="%AID%_P-%TT%%CC%000_R-%TT%%CC%00001" HelpContext="SIP-ChannelName" />
-												<!-- Telefonnummer -->
-												<ParameterRefRef RefId="%AID%_P-%TT%%CC%001_R-%TT%%CC%00101" HelpContext="SIP-PhoneNumber" />
-												<!-- Anruf beenden nach -->
-												<ParameterRefRef RefId="%AID%_P-%TT%%CC%002_R-%TT%%CC%00201" HelpContext="SIP-CancelCall" />
-												<!-- Telefonnummer anrufen -->
-												<ComObjectRefRef RefId="%AID%_O-%TT%%CC%000_R-%TT%%CC%00001" />
-											</ParameterBlock>
-										</Channel>
+										<ParameterBlock Id="%AID%_PB-%TT%%CC%01" Name="SIP%C%Wrapper" Inline="true">
+											<ParameterSeparator Id="%AID%_PS-nnn" Text="Anruf" UIHint="Headline" />
+											<!-- Kanal Name -->
+											<ParameterRefRef RefId="%AID%_P-%TT%%CC%000_R-%TT%%CC%00001" HelpContext="SIP-ChannelName" />
+											<!-- Telefonnummer -->
+											<ParameterRefRef RefId="%AID%_P-%TT%%CC%001_R-%TT%%CC%00101" HelpContext="SIP-PhoneNumber" />
+											<!-- Anruf beenden nach -->
+											<ParameterRefRef RefId="%AID%_P-%TT%%CC%002_R-%TT%%CC%00201" HelpContext="SIP-CancelCall" />
+											<!-- Telefonnummer anrufen -->
+											<ComObjectRefRef RefId="%AID%_O-%TT%%CC%000_R-%TT%%CC%00001" />
+										</ParameterBlock>
 									</ParameterBlock>
 								</when>
 							</choose>
