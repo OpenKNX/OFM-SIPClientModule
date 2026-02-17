@@ -6,6 +6,10 @@ Somit können z.B. SIM-Karten Gargentoröffner betätigt werden die einen Anruf 
 
 Für den Aufbau einer SIP Verbindung wird ein SIP Gateway benötigt. Z.B. eine FRITZ!Box
 
+## Release Notes
+
+- 0.3.0 Feature: Gruppenobjekte umbenannt
+
 ## Abhängigkeiten
 
 Das Modul setzt [OFM-Network](https://github.com/OpenKNX/OFM-Network) oder [OFM-WLAN](https://github.com/mgeramb/OFM-WLANModule) voraus.

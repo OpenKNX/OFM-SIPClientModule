@@ -33,7 +33,7 @@
 						</ComObjectTable>
 						<ComObjectRefs>
 							<!-- Nummer anrufen -->
-							<ComObjectRef Id="%AID%_O-%TT%%CC%000_R-%TT%%CC%00001" RefId="%AID%_O-%TT%%CC%000" Text="%C%: Nummer anrufen" FunctionText="{{0:-}} Nummer anrufen" TextParameterRefId="%AID%_P-%TT%%CC%000_R-%TT%%CC%00001" />
+							<ComObjectRef Id="%AID%_O-%TT%%CC%000_R-%TT%%CC%00001" RefId="%AID%_O-%TT%%CC%000" Text="{{0:SIP %C%: Nummer anrufen}}" FunctionText="SIP %C%: Eingang, Auslöser" TextParameterRefId="%AID%_P-%TT%%CC%000_R-%TT%%CC%00001" />
 						</ComObjectRefs>
 					</Static>
 					<Dynamic>
