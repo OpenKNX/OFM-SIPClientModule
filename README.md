@@ -8,7 +8,7 @@ Für den Aufbau einer SIP Verbindung wird ein SIP Gateway benötigt. Z.B. eine F
 
 ## Release Notes
 
-- 0.3.0 Feature: Gruppenobjekte umbenannt
+Die vollständige Historie liegt in [release_notes.md](release_notes.md).
 
 ## Abhängigkeiten
 
